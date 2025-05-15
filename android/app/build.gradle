@@ -1,6 +1,6 @@
 plugins {
     id 'com.android.application'
-    id 'kotlin-android'
+    id 'org.jetbrains.kotlin.android'
     id 'dev.flutter.flutter-gradle-plugin'
 }
 
@@ -46,6 +46,7 @@ def parseFlavorsFromPubspec() {
 def result = parseFlavorsFromPubspec()
 def yamlFlavors = result.flavors
 def activeFlavor = result.defaultFlavor ?: 'prod'
+println("Flavor ${activeFlavor}");
 
 android {
     namespace 'com.example.automated_build'
@@ -71,19 +72,19 @@ android {
 
     flavorDimensions "environment"
 
-    productFlavors {
-        yamlFlavors.each { flavorName, config ->
-            create(flavorName) {
-                dimension "environment"
-                if (config.applicationIdSuffix) {
-                    applicationIdSuffix config.applicationIdSuffix
-                }
-                if (config.versionNameSuffix) {
-                    versionNameSuffix config.versionNameSuffix
-                }
-            }
-        }
-    }
+//    productFlavors {
+//        yamlFlavors.each { flavorName, config ->
+//            create(flavorName) {
+//                dimension "environment"
+//                if (config.applicationIdSuffix) {
+//                    applicationIdSuffix config.applicationIdSuffix
+//                }
+//                if (config.versionNameSuffix) {
+//                    versionNameSuffix config.versionNameSuffix
+//                }
+//            }
+//        }
+//    }
 
     def keystoreProperties = new Properties()
     def keystorePropertiesFile = rootProject.file("key.properties")
