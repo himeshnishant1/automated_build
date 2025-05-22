@@ -45,20 +45,20 @@ Future<void> main(List<String> args) async {
 
 String validateFlavor(String? flavor) {
   return (flavor == null ||
-          !(flavor == 'prod' || flavor == 'uat' || flavor == 'dev'))
+      !(flavor == 'prod' || flavor == 'uat' || flavor == 'dev'))
       ? 'pod'
       : flavor;
 }
 
-Future<void> runPubGet() async{
-  // Run flutter pub get
-  final pubGetResult = await Process.run('flutter', ['pub', 'get']);
-  if (pubGetResult.exitCode != 0) {
-    print('❌ Failed to run flutter pub get:\n${pubGetResult.stderr}');
-    return;
-  }
-  print('✅ flutter pub get completed');
-}
+// Future<void> runPubGet() async{
+//   // Run flutter pub get
+//   final pubGetResult = await Process.run('flutter', ['pub', 'get']);
+//   if (pubGetResult.exitCode != 0) {
+//     print('❌ Failed to run flutter pub get:\n${pubGetResult.stderr}');
+//     return;
+//   }
+//   print('✅ flutter pub get completed');
+// }
 
 Future<Map<String, dynamic>> readConfig() async {
   final configFile = File('config.yaml');
@@ -77,35 +77,67 @@ Future<Map<String, dynamic>> readConfig() async {
   return Map<String, dynamic>.from(yamlDoc);
 }
 
-Future<void> updateLauncherIconPath(String flavor) async {
+Future<void> updateLauncherIconForFlavor(String flavor) async {
   final pubspecFile = File('pubspec.yaml');
-  String content = await pubspecFile.readAsString();
 
-  final regex = RegExp(
-      r"(flutter_launcher_icons:\s*[\s\S]*?image_path:\s*['\'])([^'\']+)(['\'])",
-      multiLine: true);
+  if (!await pubspecFile.exists()) {
+    throw Exception('pubspec.yaml not found.');
+  }
 
-  final newImagePath = 'assets/app_icons/app_$flavor.png';
+  final lines = await pubspecFile.readAsLines();
 
-  final newContent = content.replaceFirstMapped(regex, (match) {
-    return '${match[1]}$newImagePath${match[3]}';
-  });
+  final updatedLines = <String>[];
+  bool insideIconsBlock = false;
 
-  await pubspecFile.writeAsString(newContent);
-  print('✅ pubspec.yaml updated with image_path: $newImagePath');
+  for (final line in lines) {
+    final trimmed = line.trim();
+
+    if (trimmed.startsWith('flutter_launcher_icons:')) {
+      insideIconsBlock = true;
+      updatedLines.add(line);
+      continue;
+    }
+
+    if (insideIconsBlock) {
+      if (trimmed.startsWith('image_path:')) {
+        final indent = ' ' * (line.indexOf('image_path:'));
+        updatedLines.add('${indent}image_path: "assets/app_icons/app_${flavor.toLowerCase()}.png"');
+        insideIconsBlock = false; // Update only one icon per run
+      } else {
+        updatedLines.add(line);
+      }
+
+      // End block if not indented anymore
+      if (line.trim().isEmpty || !line.startsWith(RegExp(r'\s'))) {
+        insideIconsBlock = false;
+      }
+    } else {
+      updatedLines.add(line);
+    }
+  }
+
+  await pubspecFile.writeAsString(updatedLines.join('\n'));
+
+  print('✅ pubspec.yaml updated with app icon for flavor: $flavor');
+
+  // Run launcher icons command
+  final generateIcons = await Process.run(
+    'dart',
+    ['run', 'flutter_launcher_icons'],
+    runInShell: true,
+  );
+  if (generateIcons.exitCode != 0) {
+    throw Exception('flutter_launcher_icons failed:\n${generateIcons.stderr}');
+  }
 
   // Run flutter pub get
-  await runPubGet();
-
-  // Run flutter_launcher_icons
-  final launcherIconResult =
-      await Process.run('dart', ['run', 'flutter_launcher_icons']);
-  if (launcherIconResult.exitCode != 0) {
-    print(
-        '❌ Failed to run flutter_launcher_icons:\n${launcherIconResult.stderr}');
-    return;
+  final pubGet = await Process.run('flutter', ['pub', 'get'], runInShell: true);
+  if (pubGet.exitCode != 0) {
+    throw Exception('flutter pub get failed:\n${pubGet.stderr}');
   }
-  print('✅ flutter_launcher_icons executed successfully');
+  print('✅ flutter pub get done');
+
+  print('✅ Launcher icons generated for $flavor');
 }
 
 Future<void> updatePubspecYaml(
@@ -121,24 +153,24 @@ Future<void> updatePubspecYaml(
   // Update name
   content = content.replaceFirstMapped(
     RegExp(r'^name:\s*.*$', multiLine: true),
-    (match) => 'name: $appName',
+        (match) => 'name: $appName',
   );
 
   // Update defaultEnv (assuming it's in the format "defaultEnv: flavor")
   content = content.replaceFirstMapped(
     RegExp(r'^(\s*)defaultEnv:\s*.*$', multiLine: true),
-    (match) => '${match.group(1)}defaultEnv: $flavor',
+        (match) => '${match.group(1)}defaultEnv: $flavor',
   );
 
   // Update version with build number
   content = content.replaceFirstMapped(
     RegExp(r'^version:\s*[\d.]+(\+\d+)?$', multiLine: true),
-    (match) => 'version: $version+$buildNumber',
+        (match) => 'version: $version+$buildNumber',
   );
 
   await pubspecFile.writeAsString(content);
 
-  await updateLauncherIconPath(flavor);
+  await updateLauncherIconForFlavor(flavor);
 
   print('📦 Updated pubspec.yaml');
 }
@@ -181,7 +213,7 @@ Future<void> updatePackageReferencesInBuildGradle(String newPackageName) async {
 
   // Update namespace
   final namespaceRegex =
-      RegExp(r"^\s*namespace\s+['\']([^'\']+)['\']", multiLine: true);
+  RegExp(r"^\s*namespace\s+['\']([^'\']+)['\']", multiLine: true);
   if (namespaceRegex.hasMatch(content)) {
     content =
         content.replaceFirst(namespaceRegex, 'namespace "$newPackageName"');
@@ -214,7 +246,7 @@ Future<void> updateAndroidManifest(String packageName, String appName) async {
   // Update package attribute in manifest tag
   content = content.replaceFirstMapped(
     RegExp(r'<manifest[^>]*package="[^"]*"'),
-    (match) {
+        (match) {
       final beforePackage = match.group(0)!.split('package="')[0];
       return '${beforePackage}package="$packageName"';
     },
@@ -223,7 +255,7 @@ Future<void> updateAndroidManifest(String packageName, String appName) async {
   // Update android:label attribute to use string resource
   content = content.replaceFirstMapped(
     RegExp(r'android:label="[^"]*"'),
-    (match) => 'android:label="$appName"',
+        (match) => 'android:label="$appName"',
   );
 
   await manifestFile.writeAsString(content);
@@ -255,14 +287,14 @@ Future<void> updateAndroidStrings() async {
       // Update existing app_name
       content = content.replaceFirstMapped(
         RegExp(r'<string name="app_name">[^<]*</string>'),
-        (match) => '<string name="app_name">$appName</string>',
+            (match) => '<string name="app_name">$appName</string>',
       );
     } else {
       // Add app_name to existing resources
       content = content.replaceFirstMapped(
         RegExp(r'</resources>'),
-        (match) =>
-            '    <string name="app_name">$appName</string>\n</resources>',
+            (match) =>
+        '    <string name="app_name">$appName</string>\n</resources>',
       );
     }
 
@@ -290,7 +322,7 @@ Future<void> updateIosPackageName(String packageName) async {
   // Update PRODUCT_BUNDLE_IDENTIFIER while preserving suffixes like .RunnerTests
   content = content.replaceAllMapped(
     RegExp(r'PRODUCT_BUNDLE_IDENTIFIER\s*=\s*([^;]+);'),
-    (match) {
+        (match) {
       final oldValue = match.group(1)!.trim();
 
       // Check if there's a suffix after the main bundle ID
@@ -327,7 +359,7 @@ Future<void> updateBuildGradle(String packageName) async {
   // Update applicationId
   content = content.replaceFirstMapped(
     RegExp(r"applicationId\s*=?\s*(['\'])([^'\']*)\1", multiLine: true),
-    (match) {
+        (match) {
       final quote = match.group(1)!;
       return 'applicationId ${quote}${packageName}${quote}';
     },
@@ -351,9 +383,9 @@ Future<void> updateMainActivity(String newPackageName) async {
     final mainActivityFiles = await baseDir
         .list(recursive: true)
         .where((entity) =>
-            entity is File &&
-            (entity.path.endsWith('MainActivity.kt') ||
-                entity.path.endsWith('MainActivity.java')))
+    entity is File &&
+        (entity.path.endsWith('MainActivity.kt') ||
+            entity.path.endsWith('MainActivity.java')))
         .toList();
 
     if (mainActivityFiles.isEmpty) continue;
@@ -370,7 +402,7 @@ Future<void> updateMainActivity(String newPackageName) async {
 
     final oldPackageName = match.group(1)!;
     final newContent =
-        content.replaceFirst(packageRegex, 'package $newPackageName');
+    content.replaceFirst(packageRegex, 'package $newPackageName');
 
     // Build paths
     final oldPackagePath = oldPackageName.replaceAll('.', '/');
