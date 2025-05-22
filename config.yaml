@@ -1,6 +1,6 @@
 # Configuration file for app setup
-application_name: test_name_app
-flavor: prod
-packageName: com.example.testNameApp
+application_name: auto_visdom
+flavor: dev
+packageName: com.example.autoVisdom
 version: 1.2.0
 build: 42
