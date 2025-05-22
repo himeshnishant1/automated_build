@@ -32,6 +32,7 @@ Future<void> main(List<String> args) async {
     print('   Build Number: $buildNumber');
 
     // Perform updates
+    await updateEnvFile(flavor);
     await updatePubspecYaml(appName, flavor, version, buildNumber);
     await updateAndroidPackageName(packageName, appName);
     await updateIosPackageName(packageName);
@@ -50,16 +51,6 @@ String validateFlavor(String? flavor) {
       : flavor;
 }
 
-// Future<void> runPubGet() async{
-//   // Run flutter pub get
-//   final pubGetResult = await Process.run('flutter', ['pub', 'get']);
-//   if (pubGetResult.exitCode != 0) {
-//     print('❌ Failed to run flutter pub get:\n${pubGetResult.stderr}');
-//     return;
-//   }
-//   print('✅ flutter pub get completed');
-// }
-
 Future<Map<String, dynamic>> readConfig() async {
   final configFile = File('config.yaml');
 
@@ -75,6 +66,38 @@ Future<Map<String, dynamic>> readConfig() async {
   }
 
   return Map<String, dynamic>.from(yamlDoc);
+}
+
+Future<void> updateEnvFile(String flavor) async {
+  final file = File('lib/config/env.dart');
+
+  if (!await file.exists()) {
+    print('❌ env.dart file not found');
+    exit(1);
+  }
+
+  final content = await file.readAsString();
+
+  final envMap = {
+    'dev': '_dev',
+    'uat': '_uat',
+    'prod': '_prod',
+  };
+
+  final target = envMap[flavor];
+
+  if (target == null) {
+    print('❌ Invalid flavor "$flavor". Use one of: ${envMap.keys.join(', ')}');
+    exit(1);
+  }
+
+  final updatedContent = content.replaceAllMapped(
+    RegExp(r'static const envName\s*=\s*_[a-zA-Z]+;'),
+        (match) => 'static const envName = $target;',
+  );
+
+  await file.writeAsString(updatedContent);
+  print('✅ env.dart updated with envName = $target');
 }
 
 Future<void> updateLauncherIconForFlavor(String flavor) async {

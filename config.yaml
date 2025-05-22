@@ -1,6 +1,6 @@
 # Configuration file for app setup
-application_name: auto_visdom
+application_name: white_label
 flavor: dev
-packageName: com.example.autoVisdom
+packageName: com.example.whiteLabel
 version: 1.2.0
 build: 42
