@@ -48,7 +48,8 @@ def yamlFlavors = result.flavors
 def activeFlavor = result.defaultFlavor ?: 'prod'
 println("Flavor ${activeFlavor}");
 
-android {namespace "com.example.isha"
+android {
+    namespace 'com.example.automated_build'
     compileSdk 34
     ndkVersion '25.1.8937393'
 
@@ -62,7 +63,7 @@ android {namespace "com.example.isha"
     }
 
     defaultConfig {
-        applicationId 'com.example.isha'
+        applicationId 'com.example.automated_build'
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
