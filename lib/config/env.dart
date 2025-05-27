@@ -3,5 +3,5 @@ class env{
   static const _uat = "Hello Uat";
   static const _prod = "Hello Prod";
 
-  static const envName = _dev;
+  static const envName = _prod;
 }

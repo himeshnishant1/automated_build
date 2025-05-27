@@ -48,8 +48,7 @@ def yamlFlavors = result.flavors
 def activeFlavor = result.defaultFlavor ?: 'prod'
 println("Flavor ${activeFlavor}");
 
-android {
-    namespace 'com.example.automated_build'
+android {namespace "com.example.whiteLabel"
     compileSdk 34
     ndkVersion '25.1.8937393'
 
@@ -63,7 +62,7 @@ android {
     }
 
     defaultConfig {
-        applicationId 'com.example.automated_build'
+        applicationId 'com.example.whiteLabel'
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutter.versionCode
