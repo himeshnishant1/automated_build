@@ -3,4 +3,3 @@ application_name: white_label
 flavor: prod
 packageName: com.example.whiteLabel
 version: 4.2.0
-build: 23

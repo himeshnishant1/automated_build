@@ -13,14 +13,15 @@ Future<void> main(List<String> args) async {
     final flavor = validateFlavor(config['flavor']);
     final packageName = config['packageName']?.toString() ?? '';
     final version = config['version']?.toString() ?? '';
-    final buildNumber = config['build']?.toString() ?? '';
+    // final buildNumber = config['build']?.toString() ?? '';
 
     // Validate required fields
     if (appName.isEmpty ||
         flavor.isEmpty ||
         packageName.isEmpty ||
-        version.isEmpty ||
-        buildNumber.isEmpty) {
+        version.isEmpty
+        // || buildNumber.isEmpty
+    ) {
       throw Exception('Missing required fields in config.yaml');
     }
 
@@ -29,11 +30,16 @@ Future<void> main(List<String> args) async {
     print('   Flavor: $flavor');
     print('   Package Name: $packageName');
     print('   Version: $version');
-    print('   Build Number: $buildNumber');
+    // print('   Build Number: $buildNumber');
 
     // Perform updates
     await updateEnvFile(flavor);
-    await updatePubspecYaml(appName, flavor, version, buildNumber);
+    await updatePubspecYaml(
+        appName,
+        flavor,
+        version,
+        // buildNumber
+    );
     await updateAndroidPackageName(packageName, appName);
     await updateIosPackageName(packageName);
 
@@ -164,7 +170,11 @@ Future<void> updateLauncherIconForFlavor(String flavor) async {
 }
 
 Future<void> updatePubspecYaml(
-    String appName, String flavor, String version, String buildNumber) async {
+    String appName,
+    String flavor,
+    String version,
+    // String buildNumber
+    ) async {
   final pubspecFile = File('pubspec.yaml');
 
   if (!pubspecFile.existsSync()) {
@@ -185,11 +195,11 @@ Future<void> updatePubspecYaml(
         (match) => '${match.group(1)}defaultEnv: $flavor',
   );
 
-  // Update version with build number
-  content = content.replaceFirstMapped(
-    RegExp(r'^version:\s*[\d.]+(\+\d+)?$', multiLine: true),
-        (match) => 'version: $version+$buildNumber',
-  );
+  // // Update version with build number
+  // content = content.replaceFirstMapped(
+  //   RegExp(r'^version:\s*[\d.]+(\+\d+)?$', multiLine: true),
+  //       (match) => 'version: $version+$buildNumber',
+  // );
 
   await pubspecFile.writeAsString(content);
 
