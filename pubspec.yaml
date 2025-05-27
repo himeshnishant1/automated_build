@@ -1,4 +1,4 @@
-name: my_awesome_123
+name: white_label
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -39,4 +39,4 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/app_icons/app_dev.png"
+  image_path: "assets/app_icons/app_prod.png"

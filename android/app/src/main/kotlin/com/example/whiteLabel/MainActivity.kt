@@ -1,4 +1,4 @@
-package com.example.automated_build
+package com.example.whiteLabel
 
 import io.flutter.embedding.android.FlutterActivity
 
