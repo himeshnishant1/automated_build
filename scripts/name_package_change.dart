@@ -20,7 +20,7 @@ Future<void> main(List<String> args) async {
         flavor.isEmpty ||
         packageName.isEmpty ||
         version.isEmpty
-        // || buildNumber.isEmpty
+    // || buildNumber.isEmpty
     ) {
       throw Exception('Missing required fields in config.yaml');
     }
@@ -35,10 +35,10 @@ Future<void> main(List<String> args) async {
     // Perform updates
     await updateEnvFile(flavor);
     await updatePubspecYaml(
-        appName,
-        flavor,
-        version,
-        // buildNumber
+      appName,
+      flavor,
+      version,
+      // buildNumber
     );
     await updateAndroidPackageName(packageName, appName);
     await updateIosPackageName(packageName);
@@ -195,11 +195,11 @@ Future<void> updatePubspecYaml(
         (match) => '${match.group(1)}defaultEnv: $flavor',
   );
 
-  // // Update version with build number
-  // content = content.replaceFirstMapped(
-  //   RegExp(r'^version:\s*[\d.]+(\+\d+)?$', multiLine: true),
-  //       (match) => 'version: $version+$buildNumber',
-  // );
+  // Update version with build number
+  content = content.replaceFirstMapped(
+    RegExp(r'^version:\s*[\d.]+(\+\d+)?$', multiLine: true),
+        (match) => 'version: $version+1',
+  );
 
   await pubspecFile.writeAsString(content);
 
