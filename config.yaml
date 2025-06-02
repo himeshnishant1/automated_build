@@ -1,5 +1,5 @@
 # Configuration file for app setup
-application_name: white_label
+application_name: test_name
 flavor: prod
-packageName: com.example.whiteLabel
+packageName: com.example.test_name001
 version: 4.2.0
