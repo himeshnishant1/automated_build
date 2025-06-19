@@ -9,6 +9,15 @@ class PackageName {
     return packageName;
   }
 
+  static Future<String> getApplicationNameWithVersion() async {
+    PackageInfo packageInfo = await PackageInfo.fromPlatform();
+
+    String applicationName = packageInfo.appName;
+    String version = packageInfo.version;
+
+    return "$applicationName: $version";
+  }
+
   static Future<String> setAssetPath() async{
     String packageName = await getPackageName();
     if(packageName == "com.example.test_name001"){

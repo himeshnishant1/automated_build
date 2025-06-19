@@ -87,7 +87,22 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         // Here we take the value from the MyHomePage object that was created by
         // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: FutureBuilder(
+          future: PackageName.getApplicationNameWithVersion(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const CircularProgressIndicator();
+            } else if (snapshot.hasError) {
+              return const Text('Error loading image');
+            } else if (snapshot.hasData) {
+              return Text(
+                snapshot.data!,
+              );
+            } else {
+              return const SizedBox(); // fallback
+            }
+          },
+        ),
       ),
       body: Center(
         child: Column(
