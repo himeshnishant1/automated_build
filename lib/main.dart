@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:white_label/config/packageName.dart';
+import 'config/packageName.dart';
 import 'config/env.dart';
 
 
