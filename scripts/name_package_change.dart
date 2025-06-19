@@ -245,8 +245,8 @@ Future<void> updatePackageReferencesInBuildGradle(String newPackageName) async {
   }
 
   // Update namespace
-  final namespaceRegex =
-  RegExp(r"^\s*namespace\s+['\']([^'\']+)['\']", multiLine: true);
+  final namespaceRegex = RegExp(r'namespace\s+"[^"]+"');
+  // RegExp(r"^\s*namespace\s+['\']([^'\']+)['\']", multiLine: true);
   if (namespaceRegex.hasMatch(content)) {
     content =
         content.replaceFirst(namespaceRegex, 'namespace "$newPackageName"');
